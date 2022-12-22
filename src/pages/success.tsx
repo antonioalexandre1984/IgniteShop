@@ -5,6 +5,7 @@ import Stripe from "stripe";
 import { stripe } from "../lib/stripe";
 import { SuccessContainer, ImageContainer } from "../styles/pages/success";
 import Image from 'next/image'
+import Head from "next/head";
 
 interface SuccessProps {
     product: {
@@ -18,22 +19,36 @@ interface SuccessProps {
 export default function Sucess({ product }: SuccessProps) {
 
     return (
-        <SuccessContainer>
-            <h1>Compra realizada com sucesso!</h1>
-            <ImageContainer>
-                <Image src={product.imageUrl} width={120} height={120} alt="" />            </ImageContainer>
-            <p>Uhuul <strong>{product.customerName}</strong>, sua <strong>{product.name}</strong><br />
-                the Limits já está a caminho da sua casa. </p>
-            <Link href='/'>
-                Voltar ao catalogo
-            </Link>
-        </SuccessContainer>
+        <>
+            <Head>
+                <title>Compra efetuada| IgniteShop</title>
+                <meta name='robots' content="noindex" />
+            </Head>
+            <SuccessContainer>
+                <h1>Compra realizada com sucesso!</h1>
+                <ImageContainer>
+                    <Image src={product.imageUrl} width={120} height={120} alt="" />            </ImageContainer>
+                <p>Uhuul <strong>{product.customerName}</strong>, sua <strong>{product.name}</strong><br />
+                    the Limits já está a caminho da sua casa. </p>
+                <Link href='/'>
+                    Voltar ao catalogo
+                </Link>
+            </SuccessContainer>
+        </>
     )
 }
 
 export const getServerSideProps: GetServerSideProps = async ({ query }) => {
     const sessionId = query.session_id as string
-    console.log(query)
+    if (!query.session_id) {
+        return {
+            redirect: {
+                destination: '/',
+                permanent: false,
+            }
+        }
+    }
+
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
         expand: ['line_items.data.price.product', 'line_items', 'customer_details']
     })
